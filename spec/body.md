@@ -91,8 +91,7 @@ All DTG-specific schemas (types, issuer requirements, credentialSubject structur
 {
   "@context": [
     "https://www.w3.org/ns/credentials/v2",
-    "https://firstperson.network/credentials/dtg/v1",
-    "https://w3id.org/security/suites/ed25519-2020/v1"
+    "https://firstperson.network/credentials/dtg/v1"
   ],
   "type": ["VerifiableCredential", "DTGCredential", "MembershipCredential"],
   "issuer": "did:web:chess-club.example",
@@ -102,7 +101,8 @@ All DTG-specific schemas (types, issuer requirements, credentialSubject structur
     "id": "did:key:z6MkpTHR8VNs..."
   },
   "proof": {
-    "type": "Ed25519Signature2020",
+    "type": "DataIntegrityProof",
+    "cryptosuite": "eddsa-jcs-2022",
     "created": "2026-01-06T10:00:00Z",
     "proofPurpose": "assertionMethod",
     "verificationMethod": "did:web:chess-club.example#key-1",
@@ -118,7 +118,7 @@ All DTG-specific schemas (types, issuer requirements, credentialSubject structur
   "@context": [
     "https://www.w3.org/2018/credentials/v1",
     "https://firstperson.network/credentials/dtg/v1",
-    "https://w3id.org/security/suites/ed25519-2020/v1"
+    "https://w3id.org/security/data-integrity/v2"
   ],
   "type": ["VerifiableCredential", "DTGCredential", "MembershipCredential"],
   "issuer": "did:web:chess-club.example",
@@ -128,7 +128,8 @@ All DTG-specific schemas (types, issuer requirements, credentialSubject structur
     "id": "did:key:z6MkpTHR8VNs..."
   },
   "proof": {
-    "type": "Ed25519Signature2020",
+    "type": "DataIntegrityProof",
+    "cryptosuite": "eddsa-jcs-2022",
     "created": "2026-01-06T10:00:00Z",
     "proofPurpose": "assertionMethod",
     "verificationMethod": "did:web:chess-club.example#key-1",
@@ -156,7 +157,7 @@ All DTG credentials share this W3C VC structure (v2.0 shown; see [Legacy System 
   - `id` (string, REQUIRED): DID of the subject
   - Additional type-specific properties
 - `taskContext` (string, OPTIONAL unless a credential type requires it): identifier (`threadId`) of the [trust task](https://glossary.trustoverip.org/#term:trust-tasks) exchange in which this credential was issued. See [Trust Task Context Binding](#trust-task-context-binding).
-- `proof` (object, REQUIRED): W3C VC proof object
+- `proof` (object, REQUIRED): A W3C Data Integrity proof. `proof.type` MUST be `DataIntegrityProof`, with the cryptographic suite named in `proof.cryptosuite` — algorithm agility lives in data rather than in type names, so a suite migration is a value change, not a schema revision. The RECOMMENDED suite is `eddsa-jcs-2022`: its JCS (RFC 8785) canonicalization requires no `@context` resolution at verification time, so credentials remain verifiable offline (including credentials formed in person and synchronized later), and it is the same canonicalization this specification uses for `digestMultibase` — a digest and a proof over one credential cannot disagree about the credential's canonical form. Selective-disclosure presentations use the `bbs-2023` suite in the same envelope (see the Zero-Knowledge Proof sections)
 
 **Example:**
 
@@ -164,8 +165,7 @@ All DTG credentials share this W3C VC structure (v2.0 shown; see [Legacy System 
 {
   "@context": [
     "https://www.w3.org/ns/credentials/v2",
-    "https://firstperson.network/credentials/dtg/v1",
-    "https://w3id.org/security/suites/ed25519-2020/v1"
+    "https://firstperson.network/credentials/dtg/v1"
   ],
   "type": ["VerifiableCredential", "DTGCredential", "MembershipCredential"],
   "issuer": "did:example:vtcCommunityDid",
@@ -175,7 +175,8 @@ All DTG credentials share this W3C VC structure (v2.0 shown; see [Legacy System 
     "id": "did:example:memberMdid"
   },
   "proof": {
-    "type": "Ed25519Signature2020",
+    "type": "DataIntegrityProof",
+    "cryptosuite": "eddsa-jcs-2022",
     "created": "2026-01-06T10:00:00Z",
     "proofPurpose": "assertionMethod",
     "verificationMethod": "did:example:vtcCommunityDid#key-1",
@@ -207,8 +208,7 @@ Edge credentials establish relationships between existing entities (nodes) in th
 {
   "@context": [
     "https://www.w3.org/ns/credentials/v2",
-    "https://firstperson.network/credentials/dtg/v1",
-    "https://w3id.org/security/suites/ed25519-2020/v1"
+    "https://firstperson.network/credentials/dtg/v1"
   ],
   "type": ["VerifiableCredential", "DTGCredential", "RelationshipCredential"],
   "issuer": "did:peer:2.Ez6LSbysKZ...",
@@ -256,8 +256,7 @@ The holder of a VRC MAY construct a zero-knowledge proof that demonstrates posse
 {
   "@context": [
     "https://www.w3.org/ns/credentials/v2",
-    "https://firstperson.network/credentials/dtg/v1",
-    "https://w3id.org/security/suites/ed25519-2020/v1"
+    "https://firstperson.network/credentials/dtg/v1"
   ],
   "type": ["VerifiableCredential", "DTGCredential", "MembershipCredential"],
   "issuer": "did:web:chess-club.example",
@@ -310,8 +309,7 @@ This section is normative.
 {
   "@context": [
     "https://www.w3.org/ns/credentials/v2",
-    "https://firstperson.network/credentials/dtg/v1",
-    "https://w3id.org/security/suites/ed25519-2020/v1"
+    "https://firstperson.network/credentials/dtg/v1"
   ],
   "type": ["VerifiableCredential", "DTGCredential", "InvitationCredential"],
   "issuer": "did:key:z6MkhaXgBZD...",
@@ -349,8 +347,7 @@ Annotation credentials **do not create graph structure**. They attach data to ex
 {
   "@context": [
     "https://www.w3.org/ns/credentials/v2",
-    "https://firstperson.network/credentials/dtg/v1",
-    "https://w3id.org/security/suites/ed25519-2020/v1"
+    "https://firstperson.network/credentials/dtg/v1"
   ],
   "type": ["VerifiableCredential", "DTGCredential", "PersonaCredential"],
   "issuer": "did:key:z6MkrKqT9pL...",
@@ -368,9 +365,9 @@ Annotation credentials **do not create graph structure**. They attach data to ex
 
 Because the meaning of a witness attestation depends on the conditions under which the witnessing occurred, a VWC MUST be bound to the [trust task](https://glossary.trustoverip.org/#term:trust-tasks) exchange in which it was issued via the `taskContext` property (see [Trust Task Context Binding](#trust-task-context-binding)).
 
-A witnessed exchange of a complete [[ref: DTG edge]] is bidirectional: two VRCs, one in each direction, are formed in a single witnessing event. For such exchanges the witness SHOULD issue one VWC per direction. In each VWC, `credentialSubject.id` MUST be the DID of the issuer of the VRC that the VWC attests (the VRC referenced by `digest`), so that the two VWCs of an exchange are unambiguously bound to their respective directions.
+A witnessed exchange of a complete [[ref: DTG edge]] is bidirectional: two VRCs, one in each direction, are formed in a single witnessing event. For such exchanges the witness SHOULD issue one VWC per direction. In each VWC, `credentialSubject.id` MUST be the DID of the issuer of the VRC that the VWC attests (the VRC referenced by `digestMultibase`), so that the two VWCs of an exchange are unambiguously bound to their respective directions.
 
-A VWC's `credentialSubject.id` and `taskContext` alone identify only the observed party and the trust task exchange, not the edge being witnessed. Binding a VWC to a specific edge therefore requires `digest`: a verifier holding the referenced VRC can recover both relationship endpoints (the VRC's `issuer` and `credentialSubject.id`) and confirm the exact credential the witness attested to. This binding is only as strong as the verifier's access to that VRC — a `digest` without the referenced VRC to hand is an opaque hash, not an identified edge. Issuers and holders presenting a VWC as evidence of a specific edge SHOULD make the referenced VRC available alongside it.
+A VWC's `credentialSubject.id` and `taskContext` alone identify only the observed party and the trust task exchange, not the edge being witnessed. Binding a VWC to a specific edge therefore requires `digestMultibase`: a verifier holding the referenced VRC can recover both relationship endpoints (the VRC's `issuer` and `credentialSubject.id`) and confirm the exact credential the witness attested to. This binding is only as strong as the verifier's access to that VRC — a `digestMultibase` without the referenced VRC to hand is an opaque hash, not an identified edge. Issuers and holders presenting a VWC as evidence of a specific edge SHOULD make the referenced VRC available alongside it.
 
 **Schema:**
 
@@ -379,7 +376,7 @@ A VWC's `credentialSubject.id` and `taskContext` alone identify only the observe
 - `taskContext` (string, REQUIRED): `threadId` of the trust task exchange in which the witnessing occurred
 - `credentialSubject` (object, REQUIRED):
   - `id` (string, REQUIRED): DID of the observed party
-  - `digest` (string, REQUIRED): A cryptographic hash of the witnessed VRC, binding the VWC to the specific edge established. The hash MUST be computed as the SHA-256 hash of the credential's JSON representation canonicalized with the JSON Canonicalization Scheme ([JCS, RFC 8785](https://datatracker.ietf.org/doc/html/rfc8785)), and MUST be encoded as the string `sha256:` followed by the lowercase hexadecimal digest.
+  - `digestMultibase` (string, REQUIRED): A cryptographic hash of the witnessed VRC, binding the VWC to the specific edge established, using the property name the [W3C VC Data Model 2.0](https://www.w3.org/TR/vc-data-model-2.0/) defines for exactly this, so generic VC tooling recognises it. The hash MUST be computed over the credential's JSON representation canonicalized with the JSON Canonicalization Scheme ([JCS, RFC 8785](https://datatracker.ietf.org/doc/html/rfc8785)), and MUST be encoded as a multibase-encoded multihash whose hash function is SHA-256 (multihash code `0x12`). The multibase header MUST be `z` (base58btc) or `u` (base64url-no-pad) — the two headers [W3C Controlled Identifiers 1.0 §2.4](https://www.w3.org/TR/cid-1.0/#multibase-0) defines for interoperable use — and consumers MUST enforce the named alphabet rather than assume it.
   - `witnessContext` (object, OPTIONAL): Context of the witnessing event
     - `event` (string, OPTIONAL): Human-readable event name
     - `sessionId` (string, OPTIONAL): Session or nonce identifier
@@ -391,8 +388,7 @@ A VWC's `credentialSubject.id` and `taskContext` alone identify only the observe
 {
   "@context": [
     "https://www.w3.org/ns/credentials/v2",
-    "https://firstperson.network/credentials/dtg/v1",
-    "https://w3id.org/security/suites/ed25519-2020/v1"
+    "https://firstperson.network/credentials/dtg/v1"
   ],
   "type": ["VerifiableCredential", "DTGCredential", "WitnessCredential"],
   "issuer": "did:web:witness-service.example",
@@ -400,7 +396,7 @@ A VWC's `credentialSubject.id` and `taskContext` alone identify only the observe
   "taskContext": "thread-abc-123",
   "credentialSubject": {
     "id": "did:key:z6MkpTHR8VNs...",
-    "digest": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "digestMultibase": "zQmdfTbBqBPQ7VNxZEYEj14VmRuZBkqFbiwReogJgS1zR1n",
     "witnessContext": {
       "event": "EthDenver 2024",
       "sessionId": "session-abc-123",
@@ -430,8 +426,7 @@ A VWC's `credentialSubject.id` and `taskContext` alone identify only the observe
 {
   "@context": [
     "https://www.w3.org/ns/credentials/v2",
-    "https://firstperson.network/credentials/dtg/v1",
-    "https://w3id.org/security/suites/ed25519-2020/v1"
+    "https://firstperson.network/credentials/dtg/v1"
   ],
   "type": ["VerifiableCredential", "DTGCredential", "EndorsementCredential"],
   "issuer": "did:key:z6MkhaXgBZD...",
@@ -558,7 +553,7 @@ No additional schema fields are required. PHC status is determined by governance
 1. **Proof verification.** Verifiers must cryptographically verify the `proof` of every DTG credential, including resolution of the issuer's DID and validation of the verification method, before relying on any claim in the credential.
 2. **Validity period enforcement.** Verifiers must reject credentials outside their `validFrom`/`validUntil` window (or v1.1 equivalents) and should check applicable revocation status via the governing trust registry.
 3. **Issuer authorization.** A cryptographically valid credential is not necessarily an authorized one. Verifiers must evaluate whether the issuer is authorized for the claimed role (e.g., a VMC issuer being a recognized VTC, a VIC issuer being permitted to invite) using the applicable trust registry or governance framework.
-4. **Digest integrity (VWC).** A verifier relying on a VWC's binding to a specific edge must have the referenced VRC available, recompute the SHA-256 hash over its JCS (RFC 8785) canonical form, and confirm it matches `digest`; a mismatch invalidates the attestation. Without the referenced VRC in hand, `digest` cannot be resolved to an edge, and the VWC should not be treated as evidence of which edge was witnessed.
+4. **Digest integrity (VWC).** A verifier relying on a VWC's binding to a specific edge must have the referenced VRC available, recompute the SHA-256 multihash over its JCS (RFC 8785) canonical form, compare it under the credential's multibase header (enforcing that header's alphabet), and confirm it matches `digestMultibase`; a mismatch invalidates the attestation. Without the referenced VRC in hand, `digestMultibase` cannot be resolved to an edge, and the VWC should not be treated as evidence of which edge was witnessed.
 5. **Context collapse.** A credential presented outside the trust task exchange in which it was issued may be misinterpreted as evidence of a completed ceremony. The requirements of [Trust Task Context Binding](#trust-task-context-binding) exist to prevent this class of attack and must be enforced by verifiers.
 6. **Replay of invitation credentials.** VICs should be issued with short validity periods and should be treated as single-use by the accepting [[ref: VTA]]/[[ref: PEP]], to prevent replay of an intercepted invitation.
 7. **Key compromise.** Compromise of the private key controlling any DID used in a DTG credential (issuer or subject) undermines all credentials anchored to it. Key rotation and revocation procedures are governed by the applicable DID methods and trust registries.
@@ -622,6 +617,10 @@ Conformance test suites for this specification have not yet been defined and are
 - [W3C Decentralized Identifiers (DIDs) v1.0](https://www.w3.org/TR/did-1.0/)
 - [IETF RFC 2119: Key words for use in RFCs to Indicate Requirement Levels](https://datatracker.ietf.org/doc/html/rfc2119)
 - [IETF RFC 8785: JSON Canonicalization Scheme (JCS)](https://datatracker.ietf.org/doc/html/rfc8785)
+- [W3C Verifiable Credential Data Integrity 1.0](https://www.w3.org/TR/vc-data-integrity/) — the `DataIntegrityProof` envelope
+- [W3C Data Integrity EdDSA Cryptosuites v1.0](https://www.w3.org/TR/vc-di-eddsa/) — `eddsa-jcs-2022` (and `eddsa-rdfc-2022`)
+- [W3C Data Integrity BBS Cryptosuites v1.0](https://www.w3.org/TR/vc-di-bbs/) — `bbs-2023`, the selective-disclosure suite
+- [W3C Controlled Identifiers (CIDs) v1.0](https://www.w3.org/TR/cid-1.0/) — the `z`/`u` multibase headers
 - [ISO 8601: Date and time format](https://www.iso.org/iso-8601-date-and-time-format.html)
 - [Trust Tasks Framework, DTGWG Trust Tasks Task Force editor's draft](https://github.com/trustoverip/dtgwg-trust-tasks-tf/blob/main/SPEC.md) — this specification's normative references in [Trust Task Context Binding](#trust-task-context-binding) are to the framework mechanisms described in this document as of its `0.2`/`0.3` revision (§4.4.1 request/response variants, §4.9 the `threadId` member, §7.3 specification requirements, §8 error responses); this specification's dependency is on those already-defined mechanisms only, not on future revisions.
 
