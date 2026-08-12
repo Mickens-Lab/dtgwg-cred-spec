@@ -155,7 +155,7 @@ All DTG credentials share this W3C VC structure (v2.0 shown; see [Legacy System 
 - `credentialSubject` (object, REQUIRED):
   - `id` (string, REQUIRED): DID of the subject
   - Additional type-specific properties
-- `taskContext` (string, OPTIONAL unless a credential type requires it): identifier (`threadId`) of the [trust task](https://glossary.trustoverip.org/#term:trust-tasks) exchange in which this credential was issued. See [Trust Task Context Binding](#trust-task-context-binding).
+- `taskContext` (string, OPTIONAL unless a credential type requires it): identifier of the [trust task](https://glossary.trustoverip.org/#term:trust-tasks) exchange in which this credential was issued — the `id` of that exchange's initiating document. See [Trust Task Context Binding](#trust-task-context-binding).
 - `proof` (object, REQUIRED): W3C VC proof object
 
 **Example:**
@@ -374,7 +374,7 @@ A witnessed exchange of a complete [[ref: DTG edge]] is bidirectional: two VRCs,
 
 - `type` (array, REQUIRED): MUST include `"WitnessCredential"`
 - `issuer` (string, REQUIRED): DID of the witness — an [[ref: M-DID]], or the DID of a [[ref: VTA]] acting according to VTC policy
-- `taskContext` (string, REQUIRED): `threadId` of the trust task exchange in which the witnessing occurred
+- `taskContext` (string, REQUIRED): the `id` of the initiating document of the innermost trust task exchange that attests the witnessing (see [Trust Task Context Binding](#trust-task-context-binding))
 - `credentialSubject` (object, REQUIRED):
   - `id` (string, REQUIRED): DID of the observed party
   - `digest` (string, OPTIONAL): A cryptographic hash of the witnessed VRC. The hash MUST be computed as the SHA-256 hash of the credential's JSON representation canonicalized with the JSON Canonicalization Scheme ([JCS, RFC 8785](https://datatracker.ietf.org/doc/html/rfc8785)), and MUST be encoded as the string `sha256:` followed by the lowercase hexadecimal digest.
@@ -395,7 +395,7 @@ A witnessed exchange of a complete [[ref: DTG edge]] is bidirectional: two VRCs,
   "type": ["VerifiableCredential", "DTGCredential", "WitnessCredential"],
   "issuer": "did:web:witness-service.example",
   "validFrom": "2026-01-06T10:00:00Z",
-  "taskContext": "thread-abc-123",
+  "taskContext": "4a0e2b77-88c1-4d55-9f2a-6c3d1e5b7a92",
   "credentialSubject": {
     "id": "did:key:z6MkpTHR8VNs...",
     "digest": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -452,7 +452,7 @@ This section is normative.
 
 DTG credentials are frequently issued during broader multi-step exchanges — [trust tasks](https://glossary.trustoverip.org/#term:trust-tasks) carried out through ceremonies governed by a [[ref: VTC]] or [[ref: VTN]] and structured as [Trust Task documents](https://github.com/trustoverip/dtgwg-trust-tasks-tf/blob/main/SPEC.md#4-trust-task-documents). A credential exchanged inside such a ceremony can be cryptographically valid as an artifact while still being insufficient evidence that the ceremony reached its intended terminal state. This section defines the mechanism that prevents such credentials from escaping their task context and being misinterpreted.
 
-This section's normative dependency on the Trust Tasks framework is limited to mechanisms already defined in that framework's current editor's draft (request/response correlation, error responses, and the per-specification proof-requirement declaration — see [Qualifying Trust Task Specifications](#qualifying-trust-task-specifications)). It does not depend on any future or unpublished feature of that framework, or on the separate, still-planned DTG Core Trust Task Protocols specification.
+This section's normative dependency on the Trust Tasks framework is limited to mechanisms defined in that framework as of **0.4**, cited by name with the framework version pinned: document identity (§4.3), thread correlation and exchange citation (§4.9, §4.9.1), the reply-disposition classification (§8.6), the error payload's `inResponseTo` member (§8.2), and the per-variant proof-requirement and response-schema declarations (§7.3). It does not depend on any future or unpublished feature of that framework, or on the separate, still-planned DTG Core Trust Task Protocols specification. Citations name mechanisms rather than item ordinals, which the framework's own revisions renumber.
 
 ### Credentials versus Trust Task Artifacts
 
@@ -469,29 +469,33 @@ All six credential types in this specification pass the credential side of this 
 
 ### The `taskContext` Property
 
-A credential whose meaning depends on a trust task completing MUST carry a `taskContext` property containing the `threadId` of the originating trust task exchange. This requirement is a property of the credential type, not a per-issuer choice:
+A credential whose meaning depends on a trust task completing MUST carry a `taskContext` property containing the **`id` of the initiating document** of the originating trust task exchange. Where exchanges nest, `taskContext` names the *innermost* exchange that attests the event, per the framework's rule for [citing an exchange as evidence](https://github.com/trustoverip/dtgwg-trust-tasks-tf/blob/main/SPEC.md#491-citing-an-exchange-as-evidence) (framework 0.4, §4.9.1) — a witnessing nested inside a broader relationship exchange is attested by the witness ceremony's own exchange, not by the exchange that contains it. This requirement is a property of the credential type, not a per-issuer choice:
 
 - For credential types where this specification marks `taskContext` as REQUIRED (currently only the [[ref: VWC]]), issuers MUST include it.
 - For all other DTG credential types, `taskContext` is OPTIONAL.
 - A DTG credential without a `taskContext` property MUST be interpretable standing alone, independent of any exchange.
-- Issuers MUST mint `taskContext` values that are unique to the specific exchange in which the credential was issued. This requirement binds DTG issuers regardless of whether the `threadId` semantics of the underlying Trust Task specification impose a uniqueness requirement of their own — [`threadId`](https://github.com/trustoverip/dtgwg-trust-tasks-tf/blob/main/SPEC.md#49-the-threadid-member) is framework-optional and carries no normative validation semantics at the Trust Tasks framework level, so this specification imposes its own, stronger requirement on how DTG issuers use it.
+- Uniqueness comes from the framework rather than from issuer discipline: a document's [`id`](https://github.com/trustoverip/dtgwg-trust-tasks-tf/blob/main/SPEC.md#43-the-id-member) is "globally unique to this instance of the task" and producers "MUST NOT reuse an `id` value across documents" (framework 0.4, §4.3) — a normative obligation on a mandatory member. The exchange's `threadId` coincides with this value by the framework's own fallback (§4.9), so thread-correlated evidence still matches, but the anchor is the `id`: [`threadId`](https://github.com/trustoverip/dtgwg-trust-tasks-tf/blob/main/SPEC.md#49-the-threadid-member) remains framework-optional and carries no normative validation semantics.
 
 ### Qualifying Trust Task Specifications
 
 A `taskContext` value is only useful for the [Outcome Interpretability](#outcome-interpretability) rule below if the trust task exchange it identifies produces observable, integrity-protected, in-band terminal-state evidence. A governance framework (VTC or VTN) that designates the Trust Task specification governing a `taskContext`-bearing ceremony MUST select or define one that, per the Trust Tasks framework:
 
-1. declares `proof` as REQUIRED (per [Trust Tasks §7.3, item 8](https://github.com/trustoverip/dtgwg-trust-tasks-tf/blob/main/SPEC.md#73-specification-requirements)) on its success-response and error-response variants, so the resulting outcome evidence is integrity-protected; and
-2. defines a `#response` success-response payload schema (per [Trust Tasks §4.4.1](https://github.com/trustoverip/dtgwg-trust-tasks-tf/blob/main/SPEC.md#441-request-and-response-variants) and [§7.3, item 7.6](https://github.com/trustoverip/dtgwg-trust-tasks-tf/blob/main/SPEC.md#73-specification-requirements)), or relies on the framework's [`trust-task-error`](https://github.com/trustoverip/dtgwg-trust-tasks-tf/blob/main/SPEC.md#8-error-responses) document to report failure — so that the exchange's terminal state (success or failure) is observable directly from its Trust Task documents.
+1. declares `proof` as REQUIRED on its success-response variant, using the framework's per-variant proof-requirement declaration (framework 0.4, [§7.3](https://github.com/trustoverip/dtgwg-trust-tasks-tf/blob/main/SPEC.md#73-specification-requirements)), so the resulting outcome evidence is integrity-protected. (A task specification cannot strengthen the *error* variant: an error response's `type` names the framework's own [`trust-task-error`](https://github.com/trustoverip/dtgwg-trust-tasks-tf/blob/main/SPEC.md#8-error-responses) specification, whose declaration no other specification can override — which is one reason error responses are not completion evidence under [Outcome Interpretability](#outcome-interpretability).) And
+2. defines a `#response` success-response payload schema (framework 0.4, [§4.4.1](https://github.com/trustoverip/dtgwg-trust-tasks-tf/blob/main/SPEC.md#441-request-and-response-variants) and the response-schema requirement of [§7.3](https://github.com/trustoverip/dtgwg-trust-tasks-tf/blob/main/SPEC.md#73-specification-requirements)) — so that successful termination is observable directly from the exchange's Trust Task documents. A specification with no success response can only ever record failure, so a `taskContext` pointing at one could never carry positive outcome evidence.
 
 Any Trust Task specification meeting these two conditions qualifies, whether or not it is specific to DTG ceremonies. This specification does not define such a Trust Task specification itself; doing so is the responsibility of the governing VTC/VTN, coordinated where applicable with the Trust Tasks task force (see [Governance Considerations](#governance-considerations)).
 
 ### Outcome Interpretability
 
-A verifier MUST NOT interpret a `taskContext`-bearing credential as proof that the associated trust task or ceremony completed unless matching trust task outcome evidence is also present and verified. **Matching outcome evidence** is a Trust Task document that:
+A verifier MUST NOT interpret a `taskContext`-bearing credential as proof that the associated trust task or ceremony completed unless matching trust task outcome evidence is also present and verified. Which reply documents are terminal is the framework's classification, not this specification's — a success response closes an exchange, an error response closes it, and a next-step reply leaves it open (framework 0.4, [§8.6](https://github.com/trustoverip/dtgwg-trust-tasks-tf/blob/main/SPEC.md#86-reserved-response-types)); this specification cites that classification rather than restating it, so reply types the framework adds are classified where they are specified.
 
-- carries a `threadId` equal to the credential's `taskContext`;
-- carries a `type` that is either the originating request's Type URI with the `#response` fragment (success) or the framework's `trust-task-error` Type URI (failure), per [Trust Tasks §4.4.1 and §8](https://github.com/trustoverip/dtgwg-trust-tasks-tf/blob/main/SPEC.md#441-request-and-response-variants); and
-- carries a `proof` that verifies.
+**Matching outcome evidence** is a Trust Task document that:
+
+- carries a `threadId` equal to the credential's `taskContext` (the initiating document's `id`, which the exchange's thread carries by the framework's §4.9 fallback);
+- carries a `type` that is the originating request's Type URI with the `#response` fragment — the qualifying specification's terminal *success* form; and
+- carries a `proof` that verifies under that specification's declared requirement, and whose `issuer` is the party the qualifying specification names as the responder of that exchange (for a witnessed ceremony, the witness) — evidence signed by the wrong party pairs with nothing.
+
+A `trust-task-error` terminating the exchange is evidence of *failure*, never of completion: a verifier MUST NOT infer completion from one, and MUST NOT rely on one as attributable third-party evidence unless it carries the framework's `inResponseTo` member (framework 0.4, [§8.2](https://github.com/trustoverip/dtgwg-trust-tasks-tf/blob/main/SPEC.md#82-error-payload)) naming the originating document — without it, a retained error names neither the task nor the specification whose semantics its code carries, and is diagnostic for the exchange's parties only.
 
 A holder presenting a `taskContext`-bearing credential as evidence of task completion MUST include matching outcome evidence with the presentation. Discovering or retrieving outcome evidence that a verifier does not already hold is out of scope for this version of this specification: a verifier that does not receive matching outcome evidence together with the presentation MUST treat the credential as not evidencing task completion, regardless of whether such evidence exists elsewhere. This does not otherwise invalidate the credential — a `taskContext`-bearing credential remains subject to ordinary verification (issuer authorization, proof, revocation status) independent of outcome evidence; only the completion inference is withheld absent matching evidence.
 
@@ -621,7 +625,7 @@ Conformance test suites for this specification have not yet been defined and are
 - [IETF RFC 2119: Key words for use in RFCs to Indicate Requirement Levels](https://datatracker.ietf.org/doc/html/rfc2119)
 - [IETF RFC 8785: JSON Canonicalization Scheme (JCS)](https://datatracker.ietf.org/doc/html/rfc8785)
 - [ISO 8601: Date and time format](https://www.iso.org/iso-8601-date-and-time-format.html)
-- [Trust Tasks Framework, DTGWG Trust Tasks Task Force editor's draft](https://github.com/trustoverip/dtgwg-trust-tasks-tf/blob/main/SPEC.md) — this specification's normative references in [Trust Task Context Binding](#trust-task-context-binding) are to the framework mechanisms described in this document as of its `0.2`/`0.3` revision (§4.4.1 request/response variants, §4.9 the `threadId` member, §7.3 specification requirements, §8 error responses); this specification's dependency is on those already-defined mechanisms only, not on future revisions.
+- [Trust Tasks Framework, DTGWG Trust Tasks Task Force editor's draft](https://github.com/trustoverip/dtgwg-trust-tasks-tf/blob/main/SPEC.md) — this specification's normative references in [Trust Task Context Binding](#trust-task-context-binding) are to framework mechanisms as of **framework 0.4**, cited by name: document identity (§4.3), request/response variants (§4.4.1), thread correlation and exchange citation (§4.9, §4.9.1, §4.9.2), specification requirements (§7.3, the per-variant proof and response-schema declarations), error responses and the `inResponseTo` member (§8, §8.2), and the reply-disposition classification (§8.6). The dependency is on those already-defined mechanisms only, not on future revisions.
 
 ### Informative References
 
